@@ -1,0 +1,665 @@
+tosca_definitions_version: fusionstage_tosca_version_2_1
+
+inputs:
+  image-frontend:
+    default: "100.125.0.198:20202/bigheadbird/sockshop-front-end:200"
+  image-orders:
+    default: "100.125.0.198:20202/bigheadbird/orders-dotnet:wt_sleep"
+  image-payment:
+    default: "100.125.0.198:20202/bigheadbird/sockshop-payment:new_gosdk2"
+  image-user:
+    default: "100.125.0.198:20202/bigheadbird/sockshop-user:new_gosdk2"
+  image-carts:
+    default: "100.125.0.198:20202/bigheadbird/sockshop-carts:final3"
+  image-shippingv1:
+    default: "100.125.0.198:20202/bigheadbird/sockshop-shipping:final3"
+  image-catalogue:
+    default: "100.125.0.198:20202/bigheadbird/sockshop-catalogue:new_gosdk2"
+  image-servmesh:
+    default: "100.125.0.198:20202/bigheadbird/mesher-test:logs1"
+  image-mongodb-orders:
+    default: "100.125.0.198:20202/hwcse/weaveworksdemos-mongo:latest"
+  image-mongodb-users:
+    default: "100.125.0.198:20202/hwcse/sockshop-users-db:1.1.1"
+  image-mongodb-carts:
+    default: "100.125.0.198:20202/hwcse/sockshop-mongodb:0.0.1"
+  image-mysql:
+    default: "100.125.0.198:20202/hwcse/sockshop-mysql:2.0.0"
+  proxy:
+    default: "http://127.0.0.1:30101"
+  frontend_name:
+    default: "frontendapp"
+  orders_name:
+    default: "ordersapp"
+  shipping_namev1:
+    default: "shippingv1"
+  carts_name:
+    default: "carts"
+  user_name:
+    default: "user"
+  payment_name:
+    default: "paymentapp"
+  catalogue_name:
+    default: "catalogueapp"
+  servmesher_name:
+     default: "servmesher"
+  cse_reg_addr:
+    default: "https://cse.cn-north-1.myhwclouds.com:443"
+  cse_center_addr:
+    default: "https://cse.cn-north-1.myhwclouds.com:443"
+  servicenameforfrontend:
+    default: "frontend"
+  servicenameforuser:
+    default: "user"
+  servicenameforcatalogue:
+    default: "catalogue"
+  servicenameforcarts:
+    default: "carts"
+  servicenamefororders:
+    default: "orders"
+  servicenameforshipping:
+    default: "shipping"
+  servicenameforpayment:
+    default: "payment"
+  serviceversion:
+    default: "0.0.1"
+  application:
+    default: "sockshop"
+  specificaddr:
+    default: "127.0.0.1:80"
+  java-options:
+    default: "-Xms64m -Xmx128m -XX:PermSize=32m -XX:MaxPermSize=64m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom"
+  java-options-others:
+    default: "-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=30101 -Xms64m -Xmx128m -XX:PermSize=32m -XX:MaxPermSize=64m -XX:+UseG1GC -Djava.security.egd=file:/dev/urandom"
+  timeout:
+    default: "120"
+  orders-db:
+    default: "127.0.0.1"
+  carts-db:
+    default: "127.0.0.1"
+  mongo_host:
+    default: "127.0.0.1"
+  mongo_port:
+    default: "27017"
+  mongo_db:
+    default: "mongodb"
+  is_front_mesher:
+    default: "exist"
+  cat_db:
+    default: "127.0.0.1"
+  cat_port:
+    default: "3306"
+  cat_database:
+    default: "socksdb"
+  cat_user:
+    default: "catalogue_user"
+  cat_pwd:
+    default: "default_password"
+  chassis_stage:
+    default: "production"
+  chassis_env:
+    default: "production"
+  sc_host:
+    default: "cse.cn-north-1.myhwclouds.com"
+  cse_service_reg_enable:
+    default: "true"
+  dms_host:
+    default: "dms.cn-north-1.myhwclouds.com/v1.0/"
+  dms_region:
+    default: "cn-north-1"
+  dms_ak:
+    default: "EDV0PE1TVESJ0Z9SFMV0"
+  dms_sk:
+    default: "82ldOxAc8keg3pbW7pXQbgSRLR5VO4RRBhxhbLKN"
+  dms_projectid:
+    default: "7cb17735924d48c7b98a255edfbd49bc"
+
+node_templates:
+  cse-localtime-volume:
+    type: fusionstage.nodes.LocalVolume
+    properties:
+      name: localtime
+      hostPath: /etc/localtime
+
+  cse-resolv-volume:
+    type: fusionstage.nodes.LocalVolume
+    properties:
+      name: resolv
+      hostPath: /etc/resolv.conf
+
+  configmapvolume:
+    type: fusionstage.nodes.ConfigMapVolume
+    properties:
+      name: mesherconfig
+      configMapSpec:
+        - name: auth.yaml
+          value: |
+            cse.credentials.accessKey: ${AK_KEY}
+            cse.credentials.secretKey: ${SK_KEY}
+      createNew: true
+  #frontend
+  original-sockshop-group:
+    type: fusionstage.nodes.AppGroup
+    requirements:
+      - member:
+          node: frontend-app
+          relationship: fusionstage.relationships.ConsistsOf
+      - member:
+          node: orders-app
+          relationship: fusionstage.relationships.ConsistsOf
+      - member:
+          node: shippingv1-app
+          relationship: fusionstage.relationships.ConsistsOf
+      - member:
+          node: carts-app
+          relationship: fusionstage.relationships.ConsistsOf
+      - member:
+          node: user-app
+          relationship: fusionstage.relationships.ConsistsOf
+      - member:
+          node: payment-app
+          relationship: fusionstage.relationships.ConsistsOf
+      - member:
+          node: catalogue-app
+          relationship: fusionstage.relationships.ConsistsOf
+  #frontend
+  frontend-app:
+    type: fusionstage.nodes.StatelessApplication
+    properties:
+      type: container
+      name: { get_input: frontend_name }
+    requirements:
+      - package:
+          node: frontend
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - package:
+          node: servmesher
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - volume:
+          node: cse-localtime-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: configmapvolume
+          relationship: fusionstage.relationships.AttachesTo
+      - dependency:
+          node: orders-app
+          relationship: fusionstage.relationships.ConnectsTo
+      - dependency:
+          node: catalogue-app
+          relationship: fusionstage.relationships.ConnectsTo
+      - dependency:
+          node: user-app
+          relationship: fusionstage.relationships.ConnectsTo
+      - dependency:
+          node: carts-app
+          relationship: fusionstage.relationships.ConnectsTo
+
+  frontend:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-frontend }
+        env:
+          - name: "http_proxy"
+            value: { get_input: proxy }
+        serviceSpec:
+          type: NodePort
+          ports:
+            - port: 8079
+              nodePort: 32709
+              targetPort: 8079
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+
+  #servmesher
+  servmesher:
+    type: fusionstage.nodes.ContainerComponent
+    properties:     
+      package:
+        image: { get_input: image-servmesh }
+        env:
+          - name: "CSE_REGISTRY_ADDR"
+            value: { get_input: cse_reg_addr }
+          - name: "CSE_CONFIG_CENTER_ADDR"
+            value: { get_input: cse_center_addr }
+          - name: "SERVICE_NAME"
+            value: { get_input: servicenameforfrontend }
+          - name: "VERSION"
+            value: { get_input: serviceversion }
+          - name: "APP_ID"
+            value: { get_input: application }
+          - name: "cse_service_registry_sslEnable"
+            value: { get_input: cse_service_reg_enable }
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+          - name: mesherconfig
+            mountPath: /tmp/
+            readOnly: true
+  #orders
+  orders-app:
+    type: fusionstage.nodes.StatelessApplication
+    properties:
+      type: container
+      name: { get_input: orders_name }
+    requirements:
+      - package:
+          node: mongodb-orders
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - package:
+          node: orders
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - package:
+          node: order-servmesher
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - volume:
+          node: cse-localtime-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: cse-resolv-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: configmapvolume
+          relationship: fusionstage.relationships.AttachesTo
+      - dependency:
+          node: shippingv1-app
+          relationship: fusionstage.relationships.ConnectsTo
+      - dependency:
+          node: payment-app
+          relationship: fusionstage.relationships.ConnectsTo
+  mongodb-orders:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-mongodb-orders }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 27017
+              name: ordersdb
+        resourceSpec:
+          request:
+            cpu: 1000m
+            memory: 1024Mi
+          limit:
+            cpu: 1000m
+            memory: 1024Mi
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: false
+          - name: resolv
+            mountPath: /etc/resolv.conf
+            readOnly: false
+  orders:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-orders }
+        env:
+          - name: "_JAVA_OPTIONS"
+            value: { get_input: java-options-others }
+          - name: "orders_db"
+            value: { get_input: orders-db }
+          - name: "http_timeout"
+            value: { get_input: timeout }
+          - name: "http_proxy"
+            value: { get_input: proxy }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 80
+              name: ordersport
+              targetPort: 80
+        resourceSpec:
+          request:
+            cpu: 500m
+            memory: 512Mi
+          limit:
+            cpu: 2000m
+            memory: 2048Mi
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+
+  #servmesher
+  order-servmesher:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-servmesh }
+        env:
+          - name: "CSE_REGISTRY_ADDR"
+            value: { get_input: cse_reg_addr }
+          - name: "CSE_CONFIG_CENTER_ADDR"
+            value: { get_input: cse_center_addr }
+          - name: "SERVICE_NAME"
+            value: { get_input: servicenamefororders }
+          - name: "SPECIFIC_ADDR"
+            value: { get_input: specificaddr }
+          - name: "VERSION"
+            value: { get_input: serviceversion }
+          - name: "APP_ID"
+            value: { get_input: application }
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+          - name: mesherconfig
+            mountPath: /tmp/
+            readOnly: true
+
+  # shippingv1
+  shippingv1-app:
+    type: fusionstage.nodes.StatelessApplication
+    properties:
+      type: container
+      name: { get_input: shipping_namev1 }
+    requirements:
+      - package:
+          node: shippingv1
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - volume:
+          node: cse-localtime-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: cse-resolv-volume
+          relationship: fusionstage.relationships.AttachesTo
+
+  shippingv1:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-shippingv1 }
+        env:
+          - name: "JAVA_OPTS"
+            value: { get_input: java-options }
+          - name: "DMS_HOST"
+            value: { get_input: dms_host}
+          - name: "DMS_REGION"
+            value: { get_input: dms_region}
+          - name: "DMS_AK"
+            value: { get_input: dms_ak}
+          - name: "DMS_SK"
+            value: { get_input: dms_sk}
+          - name: "DMS_PROJECTID"
+            value: { get_input: dms_projectid}
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 80
+              name: shippingport
+              targetPort: 80
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+
+  #carts
+  carts-app:
+    type: fusionstage.nodes.StatelessApplication
+    properties:
+      type: container
+      name: { get_input: carts_name }
+    requirements:
+      - package:
+          node: mongodb-carts
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - package:
+          node: carts
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - volume:
+          node: cse-localtime-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: cse-resolv-volume
+          relationship: fusionstage.relationships.AttachesTo
+  mongodb-carts :
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-mongodb-carts }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 27017
+              name: cartsdb
+        resourceSpec:
+          request:
+            cpu: 1000m
+            memory: 1024Mi
+          limit:
+            cpu: 1000m
+            memory: 1024Mi
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: false
+  carts:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-carts }
+        env:
+          - name: "JAVA_OPTS"
+            value: { get_input: java-options }
+          - name: "MONGODB_CARTS_SERVICE_HOST"
+            value: { get_input: carts-db }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 80
+              name: cartsport
+              targetPort: 80
+        resourceSpec:
+          request:
+            cpu: 1000m
+            memory: 1024Mi
+          limit:
+            cpu: 2000m
+            memory: 2048Mi
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: false
+
+  #user
+  user-app:
+    type: fusionstage.nodes.StatelessApplication
+    properties:
+      type: container
+      name: { get_input: user_name }
+    requirements:
+      - package:
+          node: mongodb-users
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - package:
+          node: user
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - volume:
+          node: cse-localtime-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: cse-resolv-volume
+          relationship: fusionstage.relationships.AttachesTo
+  mongodb-users:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-mongodb-users }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 27017
+              name: userdb
+        resourceSpec:
+          request:
+            cpu: 1000m
+            memory: 1024Mi
+          limit:
+            cpu: 1000m
+            memory: 1024Mi
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: false
+          - name: resolv
+            mountPath: /etc/resolv.conf
+            readOnly: false
+  user:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-user }
+        env:
+          - name: "CSE_SERVICE_CENTER"
+            value: { get_input: cse_reg_addr }
+          - name: "CSE_CONFIG_CENTER_ADDR"
+            value: { get_input: cse_center_addr }
+          - name: "MONGO_USER"
+            value: { get_input: mongo_host }
+          - name: "MONGO_PASS"
+            value: { get_input: mongo_port }
+          - name: "USER_DATABASE"
+            value: { get_input: mongo_db }
+          - name: "front_mesher"
+            value: { get_input: is_front_mesher }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 80
+              name: userport
+              targetPort: 80
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+          - name: resolv
+            mountPath: /etc/resolv.conf
+            readOnly: true
+
+  #payment
+  payment-app:
+    type: fusionstage.nodes.StatelessApplication
+    properties:
+      type: container
+      name: { get_input: payment_name }
+    requirements:
+      - package:
+          node: payment
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - volume:
+          node: cse-localtime-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: cse-resolv-volume
+          relationship: fusionstage.relationships.AttachesTo
+  payment:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-payment }
+        env:
+          - name: "CSE_SERVICE_CENTER"
+            value: { get_input: cse_reg_addr }
+          - name: "CSE_CONFIG_CENTER_ADDR"
+            value: { get_input: cse_center_addr }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 80
+              name: paymentport
+              targetPort: 80
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+          - name: resolv
+            mountPath: /etc/resolv.conf
+            readOnly: true
+
+  #catalogue
+  catalogue-app:
+    type: fusionstage.nodes.StatelessApplication
+    properties:
+      type: container
+      name: { get_input: catalogue_name }
+    requirements:
+      - package:
+          node: mysql
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - package:
+          node: catalogue
+          relationship: fusionstage.relationships.PackageConsistsOf
+      - volume:
+          node: cse-localtime-volume
+          relationship: fusionstage.relationships.AttachesTo
+      - volume:
+          node: cse-resolv-volume
+          relationship: fusionstage.relationships.AttachesTo
+  mysql:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-mysql }
+        env:
+          - name: "MYSQL_ROOT_PASSWORD"
+            value: default_password
+          - name: "MYSQL_DATABASE"
+            value: socksdb
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 3306
+              name: catdb
+        resourceSpec:
+          request:
+            cpu: 1000m
+            memory: 1024Mi
+          limit:
+            cpu: 1000m
+            memory: 1024Mi
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: false
+          - name: resolv
+            mountPath: /etc/resolv.conf
+            readOnly: false
+  catalogue:
+    type: fusionstage.nodes.ContainerComponent
+    properties:
+      package:
+        image: { get_input: image-catalogue }
+        env:
+          - name: "CSE_SERVICE_CENTER"
+            value: { get_input: cse_reg_addr }
+          - name: "CSE_CONFIG_CENTER_ADDR"
+            value: { get_input: cse_center_addr }
+          - name: "mysql_ip"
+            value: { get_input: cat_db }
+          - name: "mysql_port"
+            value: { get_input: cat_port }
+          - name: "mysql_db"
+            value: { get_input: cat_database }
+          - name: "mysql_user"
+            value: { get_input: cat_user }
+          - name: "mysql_password"
+            value: { get_input: cat_pwd }
+        serviceSpec:
+          type: ClusterIP
+          ports:
+            - port: 80
+              name: catalogueport
+              targetPort: 80
+        volumes:
+          - name: localtime
+            mountPath: /etc/localtime
+            readOnly: true
+          - name: resolv
+            mountPath: /etc/resolv.conf
+            readOnly: true
