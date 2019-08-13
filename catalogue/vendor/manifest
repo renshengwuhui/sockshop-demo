@@ -1,0 +1,24 @@
+{
+	"version": 0,
+	"dependencies": [
+		
+		{
+			"importpath": "github.com/gogo/protobuf/proto",
+			"repository": "https://github.com/gogo/protobuf",
+			"vcs": "git",
+			"revision": "84af2615df1ba1d35cc975ba94b64ee67d6c196e",
+			"branch": "master",
+			"path": "/proto",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/pierrec/lz4",
+			"repository": "https://github.com/pierrec/lz4",
+			"vcs": "git",
+			"revision": "5c9560bfa9ace2bf86080bf40d46b34ae44604df",
+			"branch": "master",
+			"notests": true
+		}
+		
+	]
+}

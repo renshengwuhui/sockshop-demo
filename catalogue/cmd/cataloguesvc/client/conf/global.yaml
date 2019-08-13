@@ -1,0 +1,43 @@
+---
+#微服务的公共属性
+APPLICATION_ID: sockshop
+#RegisterType: zookeeper/servicecenter
+register_type: servicecenter #optional
+cse:
+  loadbalance:
+    strategyName: RoundRobin
+  service:
+    registry:
+      address: 10.162.197.14:30100
+      enableSSL: false
+      #register: manual          #optional：register不配置时默认为自动注册，可选参数有自动注册auto和手动注册manual
+      refeshInterval : 30s
+      watch: true
+      tenant: default
+  protocols:
+    highway:
+      connectiPoolSize: 100
+      transport: tcp #optional 指定加载那个传输层
+    rest:
+      listenAddress: 127.0.0.1:8082
+      advertiseAddress: 127.0.0.1:8082
+      transport: tcp #optional 指定加载那个传输层
+  handler:
+    chain:
+      consumer:
+        default: bizkeeper-consumer, loadbalance
+  references:    #optional：配置客户端依赖的微服务信息，协议信息
+    Catalogue:
+      version: 0.0.1
+      transport: rest
+ssl:
+#  # global
+#  cipherPlugin: aes
+#  verifyPeer: false
+#  verifyCN: false
+#  cipherSuits:
+#  protocol:
+#  caFile:
+#  certFile:
+#  keyFile:
+#  certPwdFile:	

@@ -1,0 +1,32 @@
+APPLICATION_ID: sockshop
+service_description:
+  name: carts
+  version: 0.0.1
+servicecomb:
+  service:
+    registry:
+      address: https://${SC_HOST}
+      instance:
+        watch: false
+  config:
+    client:
+      serverUri: https://${SC_HOST}
+      refreshMode: 1
+      refresh_interval: 5000
+  monitor:
+    client:
+      serverUri: https://${SC_HOST}
+#please remove the ak/sk in public cloud deployment
+  credentials:
+    accessKey: ${AK_KEY}
+    secretKey: ${SK_KEY}
+    akskCustomCipher: default
+    enabled: true
+  rest:
+    address: 0.0.0.0:7072
+  handler:
+    chain:
+      Provider:
+        default: bizkeeper-provider,perf-stats
+      Consumer:
+        default: bizkeeper-consumer,perf-stats
